@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  vmtea:
+    build: .
+    container_name: vmtea
+    volumes:
+      - .:/app
+      - ./privatekey.txt:/app/privatekey.txt
+      - ./toaddress.txt:/app/toaddress.txt
+      - ./config.json:/app/config.json
+      - ./node_modules:/app/node_modules
+
+    working_dir: /app
+    command: npm start
+    restart: unless-stopped

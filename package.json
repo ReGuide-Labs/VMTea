@@ -1,0 +1,15 @@
+{
+  "name": "reguide-tea",
+  "version": "1.0.0",
+  "description": "A tool for tea using Node.js",
+  "main": "tea.js",
+  "scripts": {
+    "start": "node tea.js"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "web3": "^1.10.4"
+  },
+  "author": "",
+  "license": "ISC"
+}

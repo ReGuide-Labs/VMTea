@@ -1,0 +1,19 @@
+# Node.js dependencies
+node_modules
+npm-debug.log
+package-lock.json
+
+# Environment and sensitive files
+*.txt
+!*.example.txt
+
+# System files
+.DS_Store
+
+# Logs
+*.log
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
