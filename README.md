@@ -1,5 +1,7 @@
 # VMTea Automation
 
+![Preview](./assets/preview.png)
+
 Một công cụ Node.js để tự động hóa việc chuyển token TEA.
 
 ## Yêu cầu
