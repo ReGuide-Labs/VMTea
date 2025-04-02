@@ -11,7 +11,7 @@ Một công cụ Node.js để tự động hóa việc chuyển token TEA.
 
 1. Clone repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/ReGuide-Labs/VMTea.git
    cd VMTea
    ```
 
