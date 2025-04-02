@@ -112,26 +112,11 @@ async function transferTea({
                 `\n>>> Transfer [Worker ${workerIndex}][Success: ${currentCount} txs]: ${amountToTransfer} ${symbol} | ${fromAddress} => ${toAddress} | ${scan}/${txHash.transactionHash}`
             ));
 
-            return; // Exit the loop on success
+            return true
         } catch (error) {
             const errorMessage = error.message;
             console.log(chalk.white(`\n>>> Transfer [Worker ${workerIndex}]: ...${privateKey.slice(-30)} | Trying reconnect to RPC...`));
-
-            // Check for specific errors to retry
-            if (
-                errorMessage.includes("Failed to check for transaction receipt:") ||
-                errorMessage.includes("Invalid JSON RPC response") ||
-                errorMessage.includes("Couldn't connect to node") ||
-                errorMessage.includes("Connection refused") ||
-                errorMessage.includes("Network Error") ||
-                errorMessage.includes("CONNECTION")
-            ) {
-                console.log(chalk.blue(`Retrying transfer [Worker ${workerIndex}]...`));
-                const retryDelay = randomInt(3000, 7001); // Random delay between 3 to 5 seconds
-                await new Promise(resolve => setTimeout(resolve, retryDelay)); // Wait before retrying
-            } else {
-                return; // Exit on non-retryable errors
-            }
+            return false; 
         }
     }
 }
@@ -175,21 +160,17 @@ if (isMainThread) {
                     randomInt(totalTransactions.min, totalTransactions.max + 1)
                 ); // Ensure max transactions
                 totalTransactionsMap.set(workerIndex, totalTransactionsCount); // Track total transactions for each worker
-                const intervalTime = randomInt(interval.min, interval.max + 1); // Random interval
-                const delayTime = randomInt(delay.min, delay.max + 1); // Random delay
-                setTimeout(() => {
-                    new Worker(__filename, {
-                        workerData: {
-                            privateKey,
-                            toAddresses,
-                            minAmount,
-                            maxAmount,
-                            totalTransactions: totalTransactionsCount,
-                            interval: intervalTime,
-                            workerIndex
-                        }
-                    });
-                }, delayTime);
+                new Worker(__filename, {
+                    workerData: {
+                        privateKey,
+                        toAddresses,
+                        minAmount,
+                        maxAmount,
+                        totalTransactions: totalTransactionsCount,
+                        interval: randomInt(interval.min, interval.max + 1), // Random interval
+                        workerIndex
+                    }
+                });
             });
 
             resetSuccessCounters(totalTransactionsMap); // Call after chalk is initialized and totalTransactionsMap is set
@@ -201,15 +182,16 @@ if (isMainThread) {
     main();
 } else {
     // Worker thread logic
-    const { privateKey, toAddresses, minAmount, maxAmount, totalTransactions, interval, workerIndex } = workerData; // Remove maxTransactions
+    const { privateKey, toAddresses, minAmount, maxAmount, totalTransactions, interval, workerIndex } = workerData;
 
     async function workerTask() {
-        for (let i = 0; i < totalTransactions; i++) {
+        let completedTransactions = 0;
+        while (completedTransactions < totalTransactions) {
             const toAddress = toAddresses[Math.floor(Math.random() * toAddresses.length)]; // Random recipient
             const amountToTransfer = randomDecimal(minAmount, maxAmount, 10);
 
-            // Call transfer function
-            await transferTea({
+            // Call transfer function and wait for success
+            const success = await transferTea({
                 privateKey: privateKey,
                 amountToTransfer: amountToTransfer,
                 toAddress: toAddress,
@@ -217,8 +199,12 @@ if (isMainThread) {
                 totalTransactions // Use totalTransactions directly
             });
 
-            // Wait for the next interval
-            if (i < totalTransactions - 1) {
+            if (success) {
+                completedTransactions++;
+            }
+
+            // Wait for the next interval before retrying
+            if (completedTransactions < totalTransactions) {
                 await new Promise(resolve => setTimeout(resolve, interval));
             }
         }
