@@ -167,7 +167,8 @@ if (isMainThread) {
                         minAmount,
                         maxAmount,
                         totalTransactions: totalTransactionsCount,
-                        interval: randomInt(interval.min, interval.max + 1), // Random interval
+                        intervalMin: interval.min, // Pass interval.min
+                        intervalMax: interval.max, // Pass interval.max
                         workerIndex
                     }
                 });
@@ -182,7 +183,7 @@ if (isMainThread) {
     main();
 } else {
     // Worker thread logic
-    const { privateKey, toAddresses, minAmount, maxAmount, totalTransactions, interval, workerIndex } = workerData;
+    const { privateKey, toAddresses, minAmount, maxAmount, totalTransactions, intervalMin, intervalMax, workerIndex } = workerData;
 
     async function workerTask() {
         let completedTransactions = 0;
@@ -203,9 +204,12 @@ if (isMainThread) {
                 completedTransactions++;
             }
 
-            // Wait for the next interval before retrying
+            // Randomize interval after each transferTea call
+            const randomizedInterval = randomInt(intervalMin, intervalMax + 1);
+
+            // Wait for the next randomized interval before retrying
             if (completedTransactions < totalTransactions) {
-                await new Promise(resolve => setTimeout(resolve, interval));
+                await new Promise(resolve => setTimeout(resolve, randomizedInterval));
             }
         }
 
