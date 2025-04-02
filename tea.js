@@ -127,7 +127,8 @@ async function transferTea({
                 errorMessage.includes("CONNECTION")
             ) {
                 console.log(chalk.blue(`Retrying transfer [Worker ${workerIndex}]...`));
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 5 seconds before retrying
+                const retryDelay = randomInt(3000, 7001); // Random delay between 3 to 5 seconds
+                await new Promise(resolve => setTimeout(resolve, retryDelay)); // Wait before retrying
             } else {
                 return; // Exit on non-retryable errors
             }
