@@ -18,3 +18,13 @@ services:
       options:
         max-size: "10m"
         max-file: "1"
+
+  scheduler:
+    image: alpine:latest
+    container_name: vmtea_scheduler
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: >
+      sh -c "apk add --no-cache docker-cli &&
+             echo '0 */8 * * * docker restart vmtea' | crontab - &&
+             crond -f"
